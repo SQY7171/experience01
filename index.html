@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>克隆语音匹配度评分</title>
+    <style>
+        /* 黑白色系 · 简洁 · 心理学实验规范 */
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        body {
+            background: #f5f5f5;       /* 浅灰底 */
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .experiment-container {
+            max-width: 800px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            padding: 32px 28px;
+            border: 1px solid #e0e0e0;
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 400;
+            color: #1e1e1e;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.01em;
+            border-left: 4px solid #4a4a4a;
+            padding-left: 22px;
+        }
+        .subhead {
+            font-size: 0.95rem;
+            color: #5a5a5a;
+            margin: 5px 0 30px 30px;
+        }
+        .original-section {
+            background: #f0f0f0;       /* 浅灰区分区域 */
+            border-radius: 20px;
+            padding: 24px 24px 20px 24px;
+            margin-bottom: 36px;
+            border: 1px solid #d6d6d6;
+        }
+        .original-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            font-size: 1.2rem;
+            color: #2b2b2b;
+            margin-bottom: 14px;
+        }
+        .original-label span {
+            background: #6a6a6a;
+            color: #ffffff;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+        .audio-block {
+            width: 100%;
+            margin: 8px 0;
+        }
+        audio {
+            width: 100%;
+            height: 48px;
+            border-radius: 30px;
+            outline: none;
+            background: #ffffff;
+            border: 1px solid #bdbdbd;
+        }
+        .clone-section {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 22px 22px 28px 22px;
+            border: 1px solid #d4d4d4;
+            margin-bottom: 20px;
+        }
+        .clone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .clone-title {
+            font-weight: 500;
+            font-size: 1.3rem;
+            color: #2b2b2b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge {
+            background: #d8d8d8;
+            color: #2e2e2e;
+            padding: 5px 16px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .progress-info {
+            background: #eaeaea;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            color: #2b2b2b;
+            font-weight: 500;
+        }
+        .clone-player {
+            margin: 18px 0 22px 0;
+        }
+        .rating-area {
+            text-align: center;
+            margin: 15px 0 10px;
+        }
+        .rating-label {
+            font-size: 1.1rem;
+            color: #2b2b2b;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        .likert-5 {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin: 10px 0 18px;
+        }
+        .rating-btn {
+            width: 65px;
+            height: 65px;
+            border-radius: 65px;
+            border: 1px solid #9e9e9e;
+            background: white;
+            font-size: 1.9rem;
+            font-weight: 400;
+            color: #1e1e1e;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .rating-btn:hover:enabled {
+            background: #e0e0e0;
+            border-color: #6e6e6e;
+            transform: scale(1.02);
+        }
+        .rating-btn:active:enabled {
+            transform: scale(0.97);
+            background: #d0d0d0;
+        }
+        .rating-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f2f2f2;
+            border-color: #cccccc;
+        }
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .complete-message {
+            background: #e0e0e0;
+            border-radius: 40px;
+            padding: 12px 22px;
+            font-weight: 500;
+            color: #1e1e1e;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #b0b0b0;
+        }
+        button.action-btn {
+            background: #ffffff;
+            border: 1px solid #9e9e9e;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #2b2b2b;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        button.action-btn:hover {
+            background: #eaeaea;
+            border-color: #7a7a7a;
+        }
+        .footer-note {
+            margin-top: 26px;
+            font-size: 0.85rem;
+            color: #777777;
+            text-align: center;
+            border-top: 1px dashed #bcbcbc;
+            padding-top: 20px;
+        }
+        .warning-note {
+            color: #7a4d4d;
+            font-size: 0.85rem;
+            background: #f0f0f0;
+            border-radius: 20px;
+            padding: 6px 18px;
+            display: inline-block;
+            border: 1px solid #c0c0c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="experiment-container">
+        <h1>🗣 克隆语音匹配度评分</h1>
+        <div class="subhead">欢迎参加本实验！您的任务是评估克隆语音与原语音的匹配程度。原始语音（上方灰色区域）可随时反复播放，作为参考标准。
+            下方将随机呈现32条克隆语音，请您在每条播放后根据其与原始语音的相似度进行评分。</div>
+    
+        <!-- 原语音区域：始终在最前面 -->
+        <div class="original-section">
+            <div class="original-label">
+                ⚫ 原始语音 
+                <span>可反复播放</span>
+            </div>
+            <div class="audio-block">
+                <audio id="originalAudio" controls preload="metadata" src="audio/original.mp3">
+                    您的浏览器不支持 audio 标签。
+                </audio>
+            </div>
+            <div style="font-size:0.85rem; color:#4f4f4f; margin-top: 10px;">
+                对比每一条克隆语音与原语音的相似度，点击1~5评分
+            </div>
+        </div>
+
+        <!-- 克隆语音动态区域 -->
+        <div class="clone-section">
+            <div class="clone-header">
+                <div class="clone-title">
+                    <span>🔊 当前克隆语音</span>
+                    <span class="badge" id="trialCounter">1 / 32</span>
+                </div>
+                <div class="progress-info" id="progressDisplay">已完成: 0 / 32</div>
+            </div>
+
+            <div class="clone-player">
+                <audio id="cloneAudio" controls preload="metadata" src="audio/clone1.mp3">
+                    您的浏览器不支持 audio 标签。
+                </audio>
+            </div>
+
+            <div class="rating-area">
+                <div class="rating-label">与原语音匹配的程度？</div>
+                <div class="likert-5" id="ratingButtonsContainer">
+                    <button class="rating-btn" data-score="1">1</button>
+                    <button class="rating-btn" data-score="2">2</button>
+                    <button class="rating-btn" data-score="3">3</button>
+                    <button class="rating-btn" data-score="4">4</button>
+                    <button class="rating-btn" data-score="5">5</button>
+                </div>
+                <div style="font-size:0.85rem; color:#5f5f5f; margin-top:5px;">
+                    (1 = 非常不匹配 · 5 = 完全匹配)
+                </div>
+            </div>
+
+            <!-- 完成/重置/下载栏 -->
+            <div class="action-bar">
+                <div id="completionMessage" style="display: none;" class="complete-message">
+                    ✅ 所有32条已评分，感谢您！
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="action-btn" id="resetBtn">⟲ 重新开始</button>
+                    <button class="action-btn" id="downloadBtn">📥 下载评分结果</button>
+                </div>
+            </div>
+        </div>
+
+      
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 可配置音频路径 (实验者修改此处) ----------
+            const config = {
+                // 原语音文件路径 (相对于index.html)
+                originalAudioSrc: '处理好的素材模板t2.wav',   // 请确保文件名正确
+                // 32条克隆语音文件路径 (原始顺序，程序将自动打乱呈现)
+                cloneAudioSrcs: [
+                    'high (1).wav', 'high (2).wav', 'high (3).wav', 'high (4).wav',
+                    'high (5).wav', 'high (6).wav', 'high (7).wav', 'high (8).wav',
+                    'high (9).wav', 'high (10).wav', 'high (11).wav', 'high (12).wav',
+                    'high (13).wav', 'high (14).wav', 'high (15).wav', 'high (16).wav',
+                    'low (1).wav', 'low (2).wav', 'low (3).wav', 'low (4).wav',
+                    'low (5).wav', 'low (6).wav', 'low (7).wav', 'low (8).wav',
+                    'low (9).wav', 'low (10).wav', 'low (11).wav', 'low (12).wav',   // 修正了扩展名
+                    'low (13).wav', 'low (14).wav', 'low (15).wav', 'low (16).wav'
+                ]
+            };
+
+            // ---------- 固定参数 ----------
+            const TOTAL_TRIALS = 32;        // 32条克隆语音
+
+            // ---------- 状态变量 ----------
+            let originalCloneSrcs = [];             // 保存原始顺序 (深拷贝)
+            let shuffledCloneSrcs = [];              // 随机顺序 (用于呈现)
+            let currentTrialIndex = 0;               // 0-31
+            let ratings = new Array(TOTAL_TRIALS).fill(null);   // 存储每条评分 (1-5) 对应shuffled顺序
+            let experimentCompleted = false;
+
+            // ---------- DOM 元素 ----------
+            const originalAudio = document.getElementById('originalAudio');
+            const cloneAudio = document.getElementById('cloneAudio');
+            const trialCounterSpan = document.getElementById('trialCounter');
+            const progressDisplay = document.getElementById('progressDisplay');
+            const completionMessageDiv = document.getElementById('completionMessage');
+            const ratingButtons = document.querySelectorAll('.rating-btn');
+            const resetBtn = document.getElementById('resetBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            // ---------- 辅助函数：随机打乱 (Fisher-Yates) ----------
+            function shuffleArray(arr) {
+                const a = [...arr];
+                for (let i = a.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [a[i], a[j]] = [a[j], a[i]];
+                }
+                return a;
+            }
+
+            // ---------- 重置/初始化顺序 ----------
+            function reshuffleCloneSrcs() {
+                shuffledCloneSrcs = shuffleArray(originalCloneSrcs);
+            }
+
+            // ---------- 设置原语音 ----------
+            originalAudio.src = config.originalAudioSrc;
+            originalAudio.load();
+
+            // ---------- 初始化数据 (深拷贝原始数组) ----------
+            originalCloneSrcs = [...config.cloneAudioSrcs];
+            reshuffleCloneSrcs();   // 随机打乱呈现顺序
+
+            // ---------- 辅助函数 ----------
+            function refreshUI() {
+                trialCounterSpan.textContent = `${currentTrialIndex + 1} / ${TOTAL_TRIALS}`;
+                const ratedCount = ratings.filter(r => r !== null).length;
+                progressDisplay.textContent = `已完成: ${ratedCount} / ${TOTAL_TRIALS}`;
+
+                if (experimentCompleted) {
+                    ratingButtons.forEach(btn => btn.disabled = true);
+                    completionMessageDiv.style.display = 'flex';
+                } else {
+                    ratingButtons.forEach(btn => btn.disabled = false);
+                    completionMessageDiv.style.display = 'none';
+                }
+            }
+
+            // 加载指定索引的克隆语音 (从shuffledCloneSrcs)
+            function loadCloneTrial(index) {
+                if (index < 0 || index >= TOTAL_TRIALS) return;
+                cloneAudio.src = shuffledCloneSrcs[index];   // 使用随机顺序的文件名
+                cloneAudio.load();
+                trialCounterSpan.textContent = `${index + 1} / ${TOTAL_TRIALS}`;
+            }
+
+            // 重置实验到初始状态 (重新随机顺序，清空评分)
+            function resetExperiment() {
+                // 重新随机打乱顺序
+                reshuffleCloneSrcs();
+                // 重置评分数据
+                ratings.fill(null);
+                currentTrialIndex = 0;
+                experimentCompleted = false;
+
+                // 加载第一个克隆语音 (新的随机顺序)
+                loadCloneTrial(0);
+                refreshUI();
+            }
+
+            // 处理评分
+            function handleRating(score) {
+                if (experimentCompleted) {
+                    alert('实验已完成，无法再评分。如需重新开始请点击“重新开始”。');
+                    return;
+                }
+                if (ratings[currentTrialIndex] !== null) {
+                    alert('当前克隆已经评过分，不能重复评分。');
+                    return;
+                }
+
+                ratings[currentTrialIndex] = score;
+                const allRated = ratings.every(r => r !== null);
+
+                if (allRated) {
+                    experimentCompleted = true;
+                    refreshUI();
+                    // 停留在当前语音
+                } else {
+                    // 寻找下一个未评分的试次
+                    let nextIndex = currentTrialIndex + 1;
+                    while (nextIndex < TOTAL_TRIALS && ratings[nextIndex] !== null) {
+                        nextIndex++;
+                    }
+                    if (nextIndex < TOTAL_TRIALS) {
+                        currentTrialIndex = nextIndex;
+                        loadCloneTrial(currentTrialIndex);
+                    } else {
+                        // 理论上不会到这里，但以防万一
+                        for (let i = 0; i < TOTAL_TRIALS; i++) {
+                            if (ratings[i] === null) {
+                                currentTrialIndex = i;
+                                loadCloneTrial(currentTrialIndex);
+                                break;
+                            }
+                        }
+                    }
+                }
+                refreshUI();
+            }
+
+            // 下载CSV结果 (包含文件名和评分，顺序为呈现顺序)
+            function downloadRatings() {
+                const ratedCount = ratings.filter(r => r !== null).length;
+                if (ratedCount === 0) {
+                    alert('还没有任何评分，请先进行评分。');
+                    return;
+                }
+
+                // 生成CSV内容：按照随机呈现顺序输出，每一行包含文件名和评分
+                let csvContent = "试次,克隆文件,评分\n";  // 表头
+                for (let i = 0; i < TOTAL_TRIALS; i++) {
+                    const fileName = shuffledCloneSrcs[i].split('/').pop() || `clone${i+1}.wav`;
+                    const rating = ratings[i] !== null ? ratings[i] : '未评分';
+                    csvContent += `${i+1},${fileName},${rating}\n`;
+                }
+
+                const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `语音匹配评分_随机顺序_${new Date().toISOString().slice(0,10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+
+            // ---------- 事件绑定 ----------
+            ratingButtons.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    const score = parseInt(this.getAttribute('data-score'), 10);
+                    handleRating(score);
+                });
+            });
+
+            resetBtn.addEventListener('click', function() {
+                if (confirm('确定重新开始实验吗？所有评分将清空，且语音顺序将重新随机。')) {
+                    resetExperiment();
+                }
+            });
+
+            downloadBtn.addEventListener('click', downloadRatings);
+
+            // ---------- 初始化加载 ----------
+            loadCloneTrial(0);
+            refreshUI();
+
+            // ---------- 音频加载错误提示 (控制台) ----------
+            cloneAudio.addEventListener('error', (e) => {
+                console.warn('克隆音频加载失败，请检查路径：', cloneAudio.src);
+            });
+            originalAudio.addEventListener('error', (e) => {
+                console.warn('原语音加载失败，请检查路径：', originalAudio.src);
+            });
+        })();
+    </script>
+</body>
+</html>
